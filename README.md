@@ -1,3 +1,8 @@
+2017-12-12
+fork 喜羊羊的项目，原因是在使用的过程中，自己很想修改一些东西，但是提交很不方便，只能打patch给他
+干脆fork一个算了
+
+
 # Scorpio-CSharp #
 * author : while
 * QQ群 : 245199668 [加群](http://shang.qq.com/wpa/qunwpa?idkey=8ef904955c52f7b3764403ab81602b9c08b856f040d284f7e2c1d05ed3428de8)
