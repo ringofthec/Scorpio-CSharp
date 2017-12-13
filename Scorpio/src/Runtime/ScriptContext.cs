@@ -429,16 +429,21 @@ namespace Scorpio.Runtime {
             // 安装function this 信息
             if (obj is ScriptScriptFunction)
             {
+                ScriptScriptFunction suf = obj as ScriptScriptFunction;
                 if (scriptFunction.Member is CodeMember)
                 {
                     CodeMember member = scriptFunction.Member as CodeMember;
-                    ScriptScriptFunction suf = obj as ScriptScriptFunction;
-                    ScriptObject sotable = ResolveOperand(member.Parent);
-                    if (sotable is ScriptTable)
+                    if (member.Parent == null)
+                        suf.SetTable(m_script.GetGlobalTable());
+                    else
                     {
-                        suf.SetTable1(sotable as ScriptTable);
+                        ScriptObject sotable = ResolveOperand(member.Parent);
+                        if (sotable is ScriptTable)
+                        {
+                            suf.SetTable(sotable as ScriptTable);
+                        }
                     }
-                }
+                } 
             }
             
 
@@ -457,16 +462,11 @@ namespace Scorpio.Runtime {
             ScriptContext context = new ScriptContext(m_script, null, this, Executable_Block.None);
             ScriptTable ret = m_script.CreateTable();
             foreach (ScriptScriptFunction func in table.Functions) {
-                func.SetTable(ret);
                 ret.SetValue(func.Name, func);
                 context.SetVariableForce(func.Name, func);
             }
             foreach (CodeTable.TableVariable variable in table.Variables) {
                 ScriptObject value = context.ResolveOperand(variable.value);
-                if (value is ScriptScriptFunction) {
-                    ScriptScriptFunction func = (ScriptScriptFunction)value;
-                    if (func.IsStaticFunction) func.SetTable(ret);
-                }
                 ret.SetValue(variable.key, value);
                 context.SetVariableForce(variable.key.ToString(), value);
             }

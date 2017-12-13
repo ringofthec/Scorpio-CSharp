@@ -79,13 +79,8 @@ namespace Scorpio {
             ScriptTable table = value as ScriptTable;
             if (table == null) throw new ExecutionException(m_Script, this, "table [+=] 操作只限两个[table]之间,传入数据类型:" + value.Type);
             ScriptObject obj = null;
-            ScriptScriptFunction func = null;
             foreach (KeyValuePair<object, ScriptObject> pair in table.m_listObject) {
                 obj = pair.Value.Clone();
-                if (obj is ScriptScriptFunction) {
-                    func = (ScriptScriptFunction)obj;
-                    if (!func.IsStaticFunction) func.SetTable(this);
-                }
                 m_listObject[pair.Key] = obj;
             }
             return this;
@@ -96,21 +91,12 @@ namespace Scorpio {
             if (table == null) throw new ExecutionException(m_Script, this, "table [+] 操作只限两个[table]之间,传入数据类型:" + value.Type);
             ScriptTable ret = m_Script.CreateTable();
             ScriptObject obj = null;
-            ScriptScriptFunction func = null;
             foreach (KeyValuePair<object, ScriptObject> pair in m_listObject) {
                 obj = pair.Value.Clone();
-                if (obj is ScriptScriptFunction) {
-                    func = (ScriptScriptFunction)obj;
-                    if (!func.IsStaticFunction) func.SetTable(ret);
-                }
                 ret.m_listObject[pair.Key] = obj;
             }
             foreach (KeyValuePair<object, ScriptObject> pair in table.m_listObject) {
                 obj = pair.Value.Clone();
-                if (obj is ScriptScriptFunction) {
-                    func = (ScriptScriptFunction)obj;
-                    if (!func.IsStaticFunction) func.SetTable(ret);
-                }
                 ret.m_listObject[pair.Key] = obj;
             }
             return ret;
@@ -148,16 +134,11 @@ namespace Scorpio {
         public override ScriptObject Clone() {
             ScriptTable ret = m_Script.CreateTable();
             ScriptObject obj = null;
-            ScriptScriptFunction func = null;
             foreach (KeyValuePair<object, ScriptObject> pair in m_listObject) {
                 if (pair.Value == this) {
                     ret.m_listObject[pair.Key] = ret;
                 } else {
                     obj = pair.Value.Clone();
-                    if (obj is ScriptScriptFunction) {
-                        func = (ScriptScriptFunction)obj;
-                        if (!func.IsStaticFunction) func.SetTable(ret);
-                    }
                     ret.m_listObject[pair.Key] = obj;
                 }
             }
@@ -169,6 +150,7 @@ namespace Scorpio {
             builder.Append("{");
             bool first = true;
             foreach (KeyValuePair<object, ScriptObject> pair in m_listObject) {
+                if (pair.Value == this)
                 if (pair.Value is ScriptFunction) { continue; }
                 if (first) { first = false; } else { builder.Append(","); }
                 builder.Append("\"");

@@ -8,9 +8,7 @@ namespace Scorpio.Function {
     public class ScriptScriptFunction : ScriptFunction {
         private ScorpioScriptFunction m_ScriptFunction;                         //脚本函数
         private ScriptContext m_ParentContext;                                  //父级堆栈
-        private bool m_IsStaticFunction;                                        //是否是静态函数(不是table内部函数)
         private Dictionary<String, ScriptObject> m_stackObject = new Dictionary<String, ScriptObject>();    //函数变量
-        public bool IsStaticFunction { get { return m_IsStaticFunction; } }
         public override string ToString() { return "ScriptFunction(" + Name + ")" + "_" + this.funId; }
         public override string ToJson() { return "\"ScriptFunction\""; }
         private static int funCount = 0;
@@ -18,12 +16,11 @@ namespace Scorpio.Function {
         internal ScriptScriptFunction(Script script, String name, ScorpioScriptFunction function) : base(script, name)
         {
             this.funId = funCount++;
-            this.m_IsStaticFunction = true;
             this.m_ScriptFunction = function;
         }
         public override int GetParamCount() { return m_ScriptFunction.GetParameterCount(); }
         public override bool IsParams() { return m_ScriptFunction.IsParams(); }
-        public override bool IsStatic() { return m_IsStaticFunction; }
+        public override bool IsStatic() { return false; }
         public override ScriptArray GetParams() { return m_ScriptFunction.GetParameters(); }
         public override void SetValue(object key, ScriptObject value) {
             if (!(key is string)) throw new ExecutionException(this.m_Script, this, "Function SetValue只支持String类型 key值为:" + key);
@@ -34,14 +31,8 @@ namespace Scorpio.Function {
             string skey = (string)key;
             return m_stackObject.ContainsKey(skey) ? m_stackObject[skey] : m_Script.Null;
         }
-        public void SetTable(ScriptTable table) {
-            //m_IsStaticFunction = false;
-           // m_stackObject["this"] = table;
-           // m_stackObject["self"] = table;
-        }
-        public void SetTable1(ScriptTable table)
+        public void SetTable(ScriptTable table)
         {
-            m_IsStaticFunction = false;
             m_stackObject["this"] = table;
             m_stackObject["self"] = table;
         }
@@ -51,7 +42,6 @@ namespace Scorpio.Function {
         }
         public ScriptScriptFunction Create() {
             ScriptScriptFunction ret = new ScriptScriptFunction(m_Script, Name, m_ScriptFunction);
-            ret.m_IsStaticFunction = IsStaticFunction;
             return ret;
         }
         public override object Call(ScriptObject[] parameters) {
