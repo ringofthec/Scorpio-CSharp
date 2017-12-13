@@ -12,15 +12,67 @@ namespace Scorpio {
         public override ObjectType Type { get { return ObjectType.Table; } }
         private Dictionary<object, ScriptObject> m_listObject = new Dictionary<object, ScriptObject>();  //所有的数据(函数和数据都在一个数组)
         public ScriptTable(Script script) : base(script) { }
+        private ScriptTable metaTable; // 元表
+        public void setMetaTable(ScriptTable meta) { this.metaTable = meta; }
+        public ScriptTable getMetaTable() { return metaTable; }
         public override void SetValue(object key, ScriptObject value) {
             if (value is ScriptNull) {
                 m_listObject.Remove(key);
             } else {
-                m_listObject[key] = value.Assign();
+                if (this.metaTable == null)
+                {
+                    m_listObject[key] = value.Assign();
+                }
+                else
+                {
+                    if (m_listObject.ContainsKey(key))
+                        m_listObject[key] = value.Assign();
+                    else
+                    {
+                        ScriptObject idx_obj = this.metaTable.GetValue(ScorpioMetaMethod.NEWINDEX);
+                        if (idx_obj == null)
+                        {
+                            m_listObject[key] = value.Assign();
+                            return;
+                        }
+
+                        if (idx_obj.IsFunction)
+                        {
+                            ScriptObject[] paramsArr = { this, m_Script.CreateObject(key), value };
+                            m_Script.CreateObject(idx_obj.Call(paramsArr));
+                        }
+                        else if (idx_obj.IsTable)
+                        {
+                            idx_obj.SetValue(key, value);
+                        }
+                    }
+                }
             }
         }
         public override ScriptObject GetValue(object key) {
-            return m_listObject.ContainsKey(key) ? m_listObject[key] : m_Script.Null;
+            if (this.metaTable == null)
+                return m_listObject.ContainsKey(key) ? m_listObject[key] : m_Script.Null;
+            else
+            {
+                if (m_listObject.ContainsKey(key))
+                    return m_listObject[key];
+
+                ScriptObject idx_obj = this.metaTable.GetValue(ScorpioMetaMethod.INDEX);
+                if (idx_obj == null)
+                    return m_Script.Null;
+
+                if (idx_obj.IsFunction)
+                {
+                    ScriptObject[] paramsArr = { this, m_Script.CreateObject(key)};
+                    return m_Script.CreateObject( idx_obj.Call(paramsArr) );
+                } else if (idx_obj.IsTable)
+                {
+                    return idx_obj.GetValue(key);
+                } else
+                {
+                    return m_Script.Null;
+                }
+            }
         }
         public override ScriptObject AssignCompute(TokenType type, ScriptObject value) {
             if (type != TokenType.AssignPlus) { return base.AssignCompute(type, value); }

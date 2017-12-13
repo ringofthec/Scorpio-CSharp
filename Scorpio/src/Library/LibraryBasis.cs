@@ -153,7 +153,38 @@ namespace Scorpio.Library {
             script.SetObjectInternal("import_extension", script.CreateFunction(new import_extension(script)));
             script.SetObjectInternal("generic_type", script.CreateFunction(new generic_type(script)));
             script.SetObjectInternal("generic_method", script.CreateFunction(new generic_method(script)));
+
+            script.SetObjectInternal("setmetatable", script.CreateFunction(new setmetatable()));
+            script.SetObjectInternal("getmetatable", script.CreateFunction(new getmetatable()));
         }
+
+        private class setmetatable : ScorpioHandle
+        {
+            public object Call(ScriptObject[] args)
+            {
+                if (args[0].IsTable && args[1].IsTable)
+                {
+                    ScriptTable orgtable = args[0] as ScriptTable;
+                    ScriptTable metatable = args[1] as ScriptTable;
+                    orgtable.setMetaTable(metatable);
+                }
+                return null;
+            }
+        }
+
+        private class getmetatable : ScorpioHandle
+        {
+            public object Call(ScriptObject[] args)
+            {
+                if (args[0].IsTable)
+                {
+                    ScriptTable orgtable = args[0] as ScriptTable;
+                    return orgtable.getMetaTable();
+                }
+                return null;
+            }
+        }
+
         private class print : ScorpioHandle {
             public object Call(ScriptObject[] args) {
                 for (int i = 0; i < args.Length; ++i) {

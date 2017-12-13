@@ -11,8 +11,13 @@ namespace Scorpio.Function {
         private bool m_IsStaticFunction;                                        //是否是静态函数(不是table内部函数)
         private Dictionary<String, ScriptObject> m_stackObject = new Dictionary<String, ScriptObject>();    //函数变量
         public bool IsStaticFunction { get { return m_IsStaticFunction; } }
+        public override string ToString() { return "ScriptFunction(" + Name + ")" + "_" + this.funId; }
+        public override string ToJson() { return "\"ScriptFunction\""; }
+        private static int funCount = 0;
+        private int funId;
         internal ScriptScriptFunction(Script script, String name, ScorpioScriptFunction function) : base(script, name)
         {
+            this.funId = funCount++;
             this.m_IsStaticFunction = true;
             this.m_ScriptFunction = function;
         }
@@ -30,6 +35,12 @@ namespace Scorpio.Function {
             return m_stackObject.ContainsKey(skey) ? m_stackObject[skey] : m_Script.Null;
         }
         public void SetTable(ScriptTable table) {
+            //m_IsStaticFunction = false;
+           // m_stackObject["this"] = table;
+           // m_stackObject["self"] = table;
+        }
+        public void SetTable1(ScriptTable table)
+        {
             m_IsStaticFunction = false;
             m_stackObject["this"] = table;
             m_stackObject["self"] = table;

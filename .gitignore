@@ -11,4 +11,7 @@
 /ScorpioExec/bin
 /ScorpioDemo/bin
 /bin/*.pdb
+/bin/scorpio/*.pdb
 /bin/ScorpioDemo.exe.config
+/bin/scorpio/sco.vshost.exe
+/bin/scorpio/sco.vshost.exe.manifest

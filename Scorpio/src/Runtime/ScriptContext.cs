@@ -425,6 +425,23 @@ namespace Scorpio.Runtime {
                 parameters[i] = ResolveOperand(scriptFunction.Parameters[i]).Assign();
             }
             m_script.PushStackInfo();
+
+            // 安装function this 信息
+            if (obj is ScriptScriptFunction)
+            {
+                if (scriptFunction.Member is CodeMember)
+                {
+                    CodeMember member = scriptFunction.Member as CodeMember;
+                    ScriptScriptFunction suf = obj as ScriptScriptFunction;
+                    ScriptObject sotable = ResolveOperand(member.Parent);
+                    if (sotable is ScriptTable)
+                    {
+                        suf.SetTable1(sotable as ScriptTable);
+                    }
+                }
+            }
+            
+
             object ret = obj.Call(parameters);
             m_script.PopStackInfo();
             return needRet ? m_script.CreateObject(ret) : null;

@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\ScorpioMetaMethod.cs" />
     <Compile Include="src\CodeDom\CodeArray.cs" />
     <Compile Include="src\CodeDom\CodeAssign.cs" />
     <Compile Include="src\CodeDom\CodeCallBlock.cs" />
