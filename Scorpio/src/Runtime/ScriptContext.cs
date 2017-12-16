@@ -325,7 +325,32 @@ namespace Scorpio.Runtime {
             if (m_scriptInstruction.operand0 == null)
                 InvokeReturnValue(null);
             else
-                InvokeReturnValue(ResolveOperand(m_scriptInstruction.operand0));
+            {
+                ScriptObject ret = ResolveOperand(m_scriptInstruction.operand0);
+                if (ret is ScriptScriptFunction)
+                {
+                    ScriptScriptFunction ssf = ret as ScriptScriptFunction;
+                    ssf.isCloure = true;
+                    CodeObject co = m_scriptInstruction.operand0;
+                    if (co is CodeMember)
+                    {
+                        CodeMember member = co as CodeMember;
+                        if (member.Parent == null)
+                        {
+                            ssf.SetTable(m_script.GetGlobalTable());
+                        }
+                        else
+                        {
+                            ScriptObject sotable = ResolveOperand(member.Parent);
+                            if (sotable is ScriptTable)
+                            {
+                                ssf.SetTable(sotable as ScriptTable);
+                            }
+                        }
+                    }
+                }
+                InvokeReturnValue(ret);
+            }
         }
         void ProcessResolve() {
             ResolveOperand(m_scriptInstruction.operand0);
@@ -423,6 +448,29 @@ namespace Scorpio.Runtime {
             for (int i = 0; i < num; ++i) {
                 //此处要调用Assign 如果传入number string等基础类型  在函数内自运算的话 会影响 传入的值
                 parameters[i] = ResolveOperand(scriptFunction.Parameters[i]).Assign();
+      
+                // 创建闭包
+                if (parameters[i] is ScriptScriptFunction)
+                {
+                    ScriptScriptFunction ssf = parameters[i] as ScriptScriptFunction;
+                    ssf.isCloure = true;
+                    if (scriptFunction.Parameters[i] is CodeMember)
+                    {
+                        CodeMember member = scriptFunction.Parameters[i] as CodeMember;
+                        if (member.Parent == null)
+                        {
+                            ssf.SetTable(m_script.GetGlobalTable());
+                        }
+                        else
+                        {
+                            ScriptObject sotable = ResolveOperand(member.Parent);
+                            if (sotable is ScriptTable)
+                            {
+                                ssf.SetTable(sotable as ScriptTable);
+                            }
+                        }
+                    }
+                }
             }
             m_script.PushStackInfo();
 
@@ -430,20 +478,25 @@ namespace Scorpio.Runtime {
             if (obj is ScriptScriptFunction)
             {
                 ScriptScriptFunction suf = obj as ScriptScriptFunction;
-                if (scriptFunction.Member is CodeMember)
+                if (!suf.isCloure)
                 {
-                    CodeMember member = scriptFunction.Member as CodeMember;
-                    if (member.Parent == null)
-                        suf.SetTable(m_script.GetGlobalTable());
-                    else
+                    if (scriptFunction.Member is CodeMember)
                     {
-                        ScriptObject sotable = ResolveOperand(member.Parent);
-                        if (sotable is ScriptTable)
+                        CodeMember member = scriptFunction.Member as CodeMember;
+                        if (member.Parent == null)
                         {
-                            suf.SetTable(sotable as ScriptTable);
+                            suf.SetTable(m_script.GetGlobalTable());
+                        }
+                        else
+                        {
+                            ScriptObject sotable = ResolveOperand(member.Parent);
+                            if (sotable is ScriptTable)
+                            {
+                                suf.SetTable(sotable as ScriptTable);
+                            }
                         }
                     }
-                } 
+                }
             }
             
 

@@ -150,7 +150,6 @@ namespace Scorpio {
             builder.Append("{");
             bool first = true;
             foreach (KeyValuePair<object, ScriptObject> pair in m_listObject) {
-                if (pair.Value == this)
                 if (pair.Value is ScriptFunction) { continue; }
                 if (first) { first = false; } else { builder.Append(","); }
                 builder.Append("\"");

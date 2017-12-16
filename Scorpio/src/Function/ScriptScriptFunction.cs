@@ -13,14 +13,15 @@ namespace Scorpio.Function {
         public override string ToJson() { return "\"ScriptFunction\""; }
         private static int funCount = 0;
         private int funId;
+        private bool m_isCloure = false;
         internal ScriptScriptFunction(Script script, String name, ScorpioScriptFunction function) : base(script, name)
         {
             this.funId = funCount++;
             this.m_ScriptFunction = function;
         }
+        public bool isCloure { get { return m_isCloure; } set { m_isCloure = value; } }
         public override int GetParamCount() { return m_ScriptFunction.GetParameterCount(); }
         public override bool IsParams() { return m_ScriptFunction.IsParams(); }
-        public override bool IsStatic() { return false; }
         public override ScriptArray GetParams() { return m_ScriptFunction.GetParameters(); }
         public override void SetValue(object key, ScriptObject value) {
             if (!(key is string)) throw new ExecutionException(this.m_Script, this, "Function SetValue只支持String类型 key值为:" + key);
