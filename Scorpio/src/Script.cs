@@ -153,7 +153,7 @@ namespace Scorpio {
         private ScriptScriptFunction Load(String strBreviary, List<Token> tokens, ScriptContext context) {
             if (tokens.Count == 0) return null;
             ScriptParser scriptParser = new ScriptParser(this, tokens, strBreviary);
-            return scriptParser.ParseTop();
+            return scriptParser.Parse();
         }
         public void PushSearchPath(string path) {
             if (!m_SearchPath.Contains(path))

@@ -73,13 +73,6 @@ namespace Scorpio.Compiler
         {
             return PeekToken().SourceLine;
         }
-        //解析脚本
-        public ScriptExecutable Parse()
-        {
-            m_iNextToken = 0;
-            return ParseStatementBlock(Executable_Block.Context, false, TokenType.Finished);
-            //return ParseFunction
-        }
         //解析区域代码内容( {} 之间的内容)
         private ScriptExecutable ParseStatementBlock(Executable_Block block)
         {
@@ -168,7 +161,7 @@ namespace Scorpio.Compiler
                     throw new ParserException("不支持的语法 ", token);
             }
         }
-        public ScriptScriptFunction ParseTop()
+        public ScriptScriptFunction Parse()
         {
             ScriptExecutable executable = ParseStatementBlock(Executable_Block.Function, false, TokenType.Finished);
             return new ScriptScriptFunction(m_script, "", new ScorpioScriptFunction(m_script, new List<String>(), executable, false));
