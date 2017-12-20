@@ -168,7 +168,7 @@ namespace Scorpio.Compiler
                     throw new ParserException("不支持的语法 ", token);
             }
         }
-        public ScriptScriptFunction Parse112()
+        public ScriptScriptFunction ParseTop()
         {
             ScriptExecutable executable = ParseStatementBlock(Executable_Block.Function, false, TokenType.Finished);
             return new ScriptScriptFunction(m_script, "", new ScorpioScriptFunction(m_script, new List<String>(), executable, false));
