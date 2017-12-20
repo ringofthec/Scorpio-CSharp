@@ -119,7 +119,7 @@ namespace ScorpioExec
                         } else if (str == "version") {
                             Console.WriteLine(Script.Version);
                         } else {
-                            script.LoadString(str);
+                            script.DoString(str);
                         }
                     } catch (System.Exception ex) {
                         Console.WriteLine(script.GetStackInfo());

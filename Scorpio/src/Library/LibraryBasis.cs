@@ -156,6 +156,71 @@ namespace Scorpio.Library {
 
             script.SetObjectInternal("setmetatable", script.CreateFunction(new setmetatable()));
             script.SetObjectInternal("getmetatable", script.CreateFunction(new getmetatable()));
+
+            script.SetObjectInternal("loadstring", script.CreateFunction(new loadstring(script)));
+            script.SetObjectInternal("dostring", script.CreateFunction(new dostring(script)));
+            script.SetObjectInternal("loadfile", script.CreateFunction(new loadfile(script)));
+            script.SetObjectInternal("dofile", script.CreateFunction(new dofile(script)));
+        }
+
+        private class loadfile : ScorpioHandle
+        {
+            Script m_Script;
+            public loadfile(Script sp) { m_Script = sp; }
+            public object Call(ScriptObject[] args)
+            {
+                if (args[0].IsString)
+                {
+                    ScriptString str = args[0] as ScriptString;
+                    return m_Script.LoadSearchPathFile(str.Value);
+                }
+                return m_Script.Null;
+            }
+        }
+
+        private class dofile : ScorpioHandle
+        {
+            Script m_Script;
+            public dofile(Script sp) { m_Script = sp; }
+            public object Call(ScriptObject[] args)
+            {
+                if (args[0].IsString)
+                {
+                    ScriptString str = args[0] as ScriptString;
+                    return m_Script.DoSearchPathFile(str.Value);
+                }
+                return m_Script.Null;
+            }
+        }
+
+        private class loadstring : ScorpioHandle
+        {
+            Script m_Script;
+            public loadstring(Script sp) { m_Script = sp; }
+            public object Call(ScriptObject[] args)
+            {
+                if (args[0].IsString)
+                {
+                    ScriptString sstr = args[0] as ScriptString;
+                    return m_Script.LoadString(sstr.Value);
+                }
+                return m_Script.Null;
+            }
+        }
+
+        private class dostring : ScorpioHandle
+        {
+            Script m_Script;
+            public dostring(Script sp) { m_Script = sp; }
+            public object Call(ScriptObject[] args)
+            {
+                if (args[0].IsString)
+                {
+                    ScriptString sstr = args[0] as ScriptString;
+                    return m_Script.DoString(sstr.Value);
+                }
+                return m_Script.Null;
+            }
         }
 
         private class setmetatable : ScorpioHandle
@@ -459,7 +524,7 @@ namespace Scorpio.Library {
             public object Call(ScriptObject[] args) {
                 ScriptString str = args[0] as ScriptString;
                 Util.Assert(str != null, m_script, "require 参数必须是 string");
-                return m_script.LoadSearchPathFile(str.Value);
+                return m_script.DoSearchPathFile(str.Value);
             }
         }
         private class push_search : ScorpioHandle {

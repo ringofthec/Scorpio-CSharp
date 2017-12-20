@@ -180,7 +180,8 @@ namespace Scorpio.Runtime {
             ApplyVariableObject(m_scriptInstruction.opvalue);
         }
         void ProcessMov() {
-            SetVariable(m_scriptInstruction.operand0 as CodeMember, ResolveOperand(m_scriptInstruction.operand1));
+            ScriptObject val = ResolveOperand(m_scriptInstruction.operand1);
+            SetVariable(m_scriptInstruction.operand0 as CodeMember, val);
         }
         void ProcessContinue() {
             InvokeContinue(m_scriptInstruction.operand0);
@@ -436,13 +437,40 @@ namespace Scorpio.Runtime {
             return ResolveOperand(region.Context);
         }
         ScriptFunction ParseFunction(CodeFunction func) {
-            return func.Func.Create().SetParentContext(this);
+            ScriptScriptFunction ssf = func.Func.Create();
+            ssf.SetParentContext(this);
+            return ssf;
         }
         void ParseCallBlock(CodeCallBlock block) {
             new ScriptContext(m_script, block.Executable, this).Execute();
         }
         ScriptObject ParseCall(CodeCallFunction scriptFunction, bool needRet) {
             ScriptObject obj = ResolveOperand(scriptFunction.Member);
+            // 安装function this 信息
+            if (obj is ScriptScriptFunction)
+            {
+                ScriptScriptFunction suf = obj as ScriptScriptFunction;
+                if (!suf.isCloure)
+                {
+                    if (scriptFunction.Member is CodeMember)
+                    {
+                        CodeMember member = scriptFunction.Member as CodeMember;
+                        if (member.Parent == null)
+                        {
+                            suf.SetTable(m_script.GetGlobalTable());
+                        }
+                        else
+                        {
+                            ScriptObject sotable = ResolveOperand(member.Parent);
+                            if (sotable is ScriptTable)
+                            {
+                                suf.SetTable(sotable as ScriptTable);
+                            }
+                        }
+                    }
+                }
+            }
+
             int num = scriptFunction.ParametersCount;
             ScriptObject[] parameters = new ScriptObject[num];
             for (int i = 0; i < num; ++i) {
@@ -469,36 +497,17 @@ namespace Scorpio.Runtime {
                                 ssf.SetTable(sotable as ScriptTable);
                             }
                         }
+                    } else if (scriptFunction.Parameters[i] is CodeFunction)
+                    {
+                        if (obj is ScriptScriptFunction)
+                        {
+                            ScriptScriptFunction suf = obj as ScriptScriptFunction;
+                            ssf.SetTable((ScriptTable)suf.GetValue("this"));
+                        }
                     }
                 }
             }
             m_script.PushStackInfo();
-
-            // 安装function this 信息
-            if (obj is ScriptScriptFunction)
-            {
-                ScriptScriptFunction suf = obj as ScriptScriptFunction;
-                if (!suf.isCloure)
-                {
-                    if (scriptFunction.Member is CodeMember)
-                    {
-                        CodeMember member = scriptFunction.Member as CodeMember;
-                        if (member.Parent == null)
-                        {
-                            suf.SetTable(m_script.GetGlobalTable());
-                        }
-                        else
-                        {
-                            ScriptObject sotable = ResolveOperand(member.Parent);
-                            if (sotable is ScriptTable)
-                            {
-                                suf.SetTable(sotable as ScriptTable);
-                            }
-                        }
-                    }
-                }
-            }
-            
 
             object ret = obj.Call(parameters);
             m_script.PopStackInfo();

@@ -144,18 +144,47 @@ namespace Scorpio {
             }
             return ret;
         }
-        public override string ToString() { return ToJson(); }
+        public override string ToString()
+        {
+            Console.WriteLine("Im here!!!!!!!!!!!!!!!");
+            return ToJson();
+        }
         public override string ToJson() {
+            Console.WriteLine("1111Im here!!!!!!!!!!!!!!!");
+            List<ScriptObject> allTableObj = new List<ScriptObject>();
+            allTableObj.Add(this);
+            return ToJson(allTableObj);
+        }
+        public string ToJson(List<ScriptObject> allTableObj)
+        {
+            Console.WriteLine("2222Im here!!!!!!!!!!!!!!!");
             StringBuilder builder = new StringBuilder();
             builder.Append("{");
             bool first = true;
-            foreach (KeyValuePair<object, ScriptObject> pair in m_listObject) {
+            
+            foreach (KeyValuePair<object, ScriptObject> pair in m_listObject)
+            {
                 if (pair.Value is ScriptFunction) { continue; }
                 if (first) { first = false; } else { builder.Append(","); }
                 builder.Append("\"");
                 builder.Append(pair.Key);
                 builder.Append("\":");
-                builder.Append(pair.Value.ToJson());
+
+                if (pair.Value is ScriptTable && allTableObj.Contains(pair.Value))
+                {
+                    ScriptTable st = pair.Value as ScriptTable;
+                    builder.Append("\":Table[").Append(st.Name).Append("]");
+                    continue;
+                }
+
+                if (pair.Value is ScriptTable)
+                {
+                    ScriptTable st = pair.Value as ScriptTable;
+                    allTableObj.Add(st);
+                    builder.Append(st.ToJson(allTableObj));
+                }
+                else
+                    builder.Append(pair.Value.ToJson());
             }
             builder.Append("}");
             return builder.ToString();

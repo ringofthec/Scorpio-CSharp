@@ -60,16 +60,35 @@ namespace Scorpio {
             LibraryFunc.Load(this);
             LibraryUserdata.Load(this);
         }
-        public ScriptObject LoadFile(String strFileName) {
-            return LoadFile(strFileName, UTF8);
+        public ScriptObject DoFile(String strFileName) {
+            return DoFile(strFileName, UTF8);
         }
-        public ScriptObject LoadFile(String fileName, Encoding encoding) {
-            using (FileStream stream = File.OpenRead(fileName)) {
+        public ScriptObject DoFile(String fileName, Encoding encoding) {
+            ScriptScriptFunction funBody = LoadFile(fileName, encoding);
+            return Do(funBody);
+        }
+        private ScriptObject Do(ScriptScriptFunction func)
+        {
+            ScriptObject ret = (ScriptObject)func.Call();
+            return ret;
+        }
+        public ScriptScriptFunction LoadFile(String fileName)
+        {
+            return LoadFile(fileName, UTF8);
+        }
+        public ScriptScriptFunction LoadFile(String fileName, Encoding encoding) {
+            using (FileStream stream = File.OpenRead(fileName))
+            {
                 long length = stream.Length;
                 byte[] buffer = new byte[length];
                 stream.Read(buffer, 0, buffer.Length);
                 return LoadBuffer(fileName, buffer, encoding);
             }
+        }
+        public ScriptObject DoBuffer(byte[] buffer)
+        {
+            ScriptScriptFunction funBody = LoadBuffer("Undefined", buffer, UTF8);
+            return Do(funBody);
         }
         public ScriptObject LoadBuffer(byte[] buffer) {
             return LoadBuffer("Undefined", buffer, UTF8);
@@ -77,7 +96,12 @@ namespace Scorpio {
         public ScriptObject LoadBuffer(String strBreviary, byte[] buffer) {
             return LoadBuffer(strBreviary, buffer, UTF8);
         }
-        public ScriptObject LoadBuffer(String strBreviary, byte[] buffer, Encoding encoding) {
+        public ScriptObject DoBuffer(String strBreviary, byte[] buffer)
+        {
+            ScriptScriptFunction funBody = LoadBuffer(strBreviary, buffer, UTF8);
+            return Do(funBody);
+        }
+        public ScriptScriptFunction LoadBuffer(String strBreviary, byte[] buffer, Encoding encoding) {
             if (buffer == null || buffer.Length == 0) { return null; }
             try {
                 if (buffer[0] == 0) {
@@ -89,15 +113,25 @@ namespace Scorpio {
                 throw new ScriptException("load buffer [" + strBreviary + "] is error : " + e.ToString());
             }
         }
-        public ScriptObject LoadString(String strBuffer) {
+        public ScriptObject DoString(String strBuffer)
+        {
+            ScriptScriptFunction funBody = LoadString("", strBuffer);
+            return Do(funBody);
+        }
+        public ScriptObject DoString(String strBreviary, String strBuffer)
+        {
+            ScriptScriptFunction funBody = LoadString(strBreviary, strBuffer, null, true);
+            return Do(funBody);
+        }
+        public ScriptScriptFunction LoadString(String strBuffer) {
             return LoadString("", strBuffer);
         }
-        public ScriptObject LoadString(String strBreviary, String strBuffer) {
+        public ScriptScriptFunction LoadString(String strBreviary, String strBuffer) {
             return LoadString(strBreviary, strBuffer, null, true);
         }
-        internal ScriptObject LoadString(String strBreviary, String strBuffer, ScriptContext context, bool clearStack) {
+        internal ScriptScriptFunction LoadString(String strBreviary, String strBuffer, ScriptContext context, bool clearStack) {
             try {
-                if (Util.IsNullOrEmpty(strBuffer)) return m_Null;
+                if (Util.IsNullOrEmpty(strBuffer)) return null;
                 if (clearStack) m_StackInfoStack.Clear();
                 ScriptLexer scriptLexer = new ScriptLexer(strBuffer, strBreviary);
                 return Load(scriptLexer.GetBreviary(), scriptLexer.GetTokens(), context);
@@ -105,35 +139,38 @@ namespace Scorpio {
                 throw new ScriptException("load buffer [" + strBreviary + "] is error : " + e.ToString());
             }
         }
-        public ScriptObject LoadTokens(List<Token> tokens) {
+        public ScriptScriptFunction LoadTokens(List<Token> tokens) {
             return LoadTokens("Undefined", tokens);
         }
-        public ScriptObject LoadTokens(String strBreviary, List<Token> tokens) {
+        public ScriptScriptFunction LoadTokens(String strBreviary, List<Token> tokens) {
             try {
-                if (tokens.Count == 0) return m_Null;
                 m_StackInfoStack.Clear();
                 return Load(strBreviary, tokens, null);
             } catch (System.Exception e) {
                 throw new ScriptException("load tokens [" + strBreviary + "] is error : " + e.ToString());
             }
         }
-        private ScriptObject Load(String strBreviary, List<Token> tokens, ScriptContext context) {
-            if (tokens.Count == 0) return m_Null;
+        private ScriptScriptFunction Load(String strBreviary, List<Token> tokens, ScriptContext context) {
+            if (tokens.Count == 0) return null;
             ScriptParser scriptParser = new ScriptParser(this, tokens, strBreviary);
-            ScriptExecutable scriptExecutable = scriptParser.Parse();
-            return new ScriptContext(this, scriptExecutable, context, Executable_Block.Context).Execute();
+            return scriptParser.Parse112();
         }
         public void PushSearchPath(string path) {
             if (!m_SearchPath.Contains(path))
                 m_SearchPath.Add(path);
         }
-        public ScriptObject LoadSearchPathFile(String fileName) {
+        public ScriptScriptFunction LoadSearchPathFile(String fileName) {
             for (int i = 0; i < m_SearchPath.Count; ++i) {
                 string file = m_SearchPath[i] + "/" + fileName;
                 if (File.Exists(file))
                     return LoadFile(file);
             }
             throw new ExecutionException(this, "require 找不到文件 : " + fileName);
+        }
+        public ScriptObject DoSearchPathFile(String fileName)
+        {
+            ScriptScriptFunction funBody = LoadSearchPathFile(fileName);
+            return Do(funBody);
         }
         public void PushDefine(string define) {
             if (!m_Defines.Contains(define))
